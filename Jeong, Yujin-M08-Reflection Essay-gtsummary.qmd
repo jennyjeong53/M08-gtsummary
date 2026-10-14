@@ -1,0 +1,394 @@
+---
+title: "Summary Tables with gtsummary"
+subtitle: "Revealjs Presentation"
+author: "Yujin Jeong"
+institute: "IBM 6500, Cal Poly Pomona"
+date: today
+date-format: "MMMM D, YYYY"
+format:
+  revealjs:
+    theme: serif
+    width: 1600
+    height: 900
+    footer: "MSDM CEP - Avenue Shabu Analytics Project"
+    transition: slide
+    transition-speed: default
+    incremental: false
+    toc: true
+    toc-depth: 1
+    slide-number: true
+    scrollable: true
+    smaller: true
+    code-fold: false
+    code-overflow: wrap
+    number-sections: false
+    embed-resources: true
+editor: source
+execute:
+  echo: true
+  warning: false
+  message: false
+  freeze: false
+---
+
+## 1. Capabilities of {gtsummary}
+
+### Essay Prompt
+
+> In Step 1, you have seen how to create a summary table and modify it for various statistical analyses. Summarize the package's capabilities as explained by the speaker. How may the {gtsummary} benefit you for your school work or career?
+
+### Capabilities of {gtsummary}
+
+The `{gtsummary}` package is designed to create publication-ready analytical and summary tables efficiently.
+
+Key capabilities include:
+
+- **Descriptive Statistics:** `tbl_summary()` summarizes categorical and continuous variables.
+- **Statistical Testing:** `add_p()` adds statistical tests and p-values.
+- **Regression Tables:** `tbl_regression()` presents regression coefficients, confidence intervals, and p-values.
+- **Customization:** Users can modify labels, formatting, and table appearance.
+
+---
+
+## 1. Benefits for School Work & Career
+
+For our MSDM CEP project with **Avenue Shabu**, presenting raw statistical outputs can overwhelm clients.
+
+The `{gtsummary}` package allows me to:
+
+- Transform complex statistical results into clear, professional tables.
+- Save time by automatically formatting statistical outputs.
+- Communicate analytical findings effectively to non-technical stakeholders.
+- Support data-driven marketing and business decisions.
+
+This skill will be valuable in my future digital marketing career, where communicating data insights is just as important as performing the analysis.
+
+::: notes
+Highlight how much time is saved by not having to manually format tables in Excel or Word after running analyses in R.
+:::
+
+---
+
+## 2. Extended Presentation by Dr. Daniel Sjoberg
+
+### Essay Prompt
+
+> How does {gtsummary} differ from gt and gtExtras? What are three new things you learned from Dr. Sjoberg's extended presentation?
+
+### 2.1 Differences Between Packages
+
+| Package | Primary Purpose |
+|---|---|
+| `{gt}` | Creates and formats highly customizable tables in R. |
+| `{gtExtras}` | Provides additional styling and visual enhancements for gt tables. |
+| `{gtsummary}` | Automatically creates statistical summary and regression tables. |
+
+**Key Difference:**
+
+While `{gt}` and `{gtExtras}` focus mainly on table presentation, `{gtsummary}` focuses on generating and presenting statistical analysis results.
+
+---
+
+## 2.2 Three New Things Learned
+
+**1. Combining Multiple Tables**
+
+- `tbl_merge()` combines tables side-by-side.
+- `tbl_stack()` stacks multiple tables vertically.
+- These functions are useful for comparing statistical models.
+
+**2. Inline Statistical Reporting**
+
+- `inline_text()` extracts statistical results directly from a gtsummary table.
+- This reduces manual copy-and-paste errors.
+
+**3. Customizing Table Themes**
+
+- `theme_gtsummary_journal()` applies journal-specific formatting.
+- Consistent formatting improves academic and business reports.
+
+---
+
+## 3. Cross-Tabulation on MSDM CEP Data
+
+### Essay Prompt
+
+> Apply what you learned to your MSDM CEP data. Choose two appropriate variables for cross-tabulation and show if the two variables are associated or not. Use appropriate statistics to test if the two variables are associated. Code, produce the table, and interpret the result.
+
+### Application to Avenue Shabu
+
+For this demonstration, I created a **simulated survey dataset of 200 Avenue Shabu customers**.
+
+The analysis examines the relationship between:
+
+- **Customer Age Group:** Gen Z, Millennials, Gen X, and Boomers
+- **Reservation Status:** Walk-in or Reserved
+
+**Research Question:**
+
+Is customer age group associated with reservation behavior?
+
+**Statistical Method:** Pearson's Chi-Square Test of Independence.
+
+**Note:** The data are simulated for demonstration purposes and do not represent actual Avenue Shabu survey responses.
+
+---
+
+## 3. Data Preparation
+
+```{r}
+#| label: prepare-shabu-data
+#| message: false
+#| warning: false
+
+library(gtsummary)
+library(dplyr)
+
+set.seed(123)
+
+shabu_data <- tibble(
+  age_group = sample(
+    c("Gen Z", "Millennials", "Gen X", "Boomers"),
+    200,
+    replace = TRUE
+  ),
+  reservation_status = sample(
+    c("Walk-in", "Reserved"),
+    200,
+    replace = TRUE,
+    prob = c(0.4, 0.6)
+  ),
+  overall_satisfaction = round(
+    rnorm(200, mean = 7, sd = 1.5),
+    1
+  ),
+  food_quality = sample(1:10, 200, replace = TRUE),
+  service_speed = sample(1:10, 200, replace = TRUE),
+  price_perception = sample(1:10, 200, replace = TRUE)
+)
+
+head(shabu_data)
+```
+
+---
+
+## 3. Cross-Tabulation Results
+
+```{r}
+#| label: cross-tabulation
+#| echo: true
+
+cross_table <- shabu_data |>
+  select(age_group, reservation_status) |>
+  tbl_cross(
+    row = age_group,
+    col = reservation_status,
+    percent = "cell"
+  ) |>
+  add_p(test = "chisq.test") |>
+  modify_caption(
+    "**Table 1. Age Group vs. Reservation Status**"
+  )
+
+cross_table
+```
+
+---
+
+## 3. Interpretation of Cross-Tabulation
+
+```{r}
+#| label: chi-square-test
+#| echo: false
+#| include: false
+
+chi_result <- chisq.test(
+  table(
+    shabu_data$age_group,
+    shabu_data$reservation_status
+  ),
+  correct = FALSE
+)
+
+p_cross <- chi_result$p.value
+
+cross_interpretation <- if (p_cross < 0.05) {
+  "Since the p-value is below 0.05, we reject the null hypothesis. The simulated data show a statistically significant association between age group and reservation status."
+} else {
+  "Since the p-value is greater than or equal to 0.05, we fail to reject the null hypothesis. The simulated data do not provide sufficient evidence of an association between age group and reservation status."
+}
+```
+
+The cross-tabulation shows how reservation behavior varies across different age groups.
+
+**Hypotheses:**
+
+- **H0:** Age group and reservation status are independent.
+- **H1:** Age group and reservation status are associated.
+
+**Statistical Result:**
+
+- P-value: `r format.pval(p_cross, digits = 3)`
+- Significance level: 0.05
+
+**Interpretation:**
+
+`r cross_interpretation`
+
+**Business Implication:**
+
+Understanding reservation patterns across age groups could help Avenue Shabu develop more targeted marketing and reservation strategies.
+
+---
+
+## 4. Multiple Regression on MSDM CEP Data
+
+### Essay Prompt
+
+> Using the MSDM CEP data, run multiple regression. The dependent variable can be continuous or dichotomous. Regress a dependent variable on a set of independent variables. Code, produce the table, and interpret the result.
+
+### Multiple Regression Analysis
+
+For this analysis, I use multiple linear regression to examine which restaurant experience factors are associated with overall customer satisfaction.
+
+**Dependent Variable (Y):**
+
+- Overall Satisfaction Score
+
+**Independent Variables (X):**
+
+- Food Quality
+- Service Speed
+- Price Perception
+
+**Research Question:**
+
+Which restaurant experience factors are associated with customer satisfaction at Avenue Shabu?
+
+---
+
+## 4. Multiple Regression Model
+
+```{r}
+#| label: regression-model
+#| echo: true
+
+m1 <- lm(
+  overall_satisfaction ~
+    food_quality +
+    service_speed +
+    price_perception,
+  data = shabu_data
+)
+
+summary(m1)
+```
+
+The model estimates the relationship between overall satisfaction and three restaurant experience factors while controlling for the other predictors.
+
+---
+
+## 4. Regression Results with gtsummary
+
+```{r}
+#| label: regression-table
+#| echo: true
+
+regression_table <- tbl_regression(
+  m1
+) |>
+  add_global_p() |>
+  bold_p(t = 0.05) |>
+  modify_caption(
+    "**Table 2. Multiple Regression on Overall Satisfaction**"
+  )
+
+regression_table
+```
+
+---
+
+## 4. Interpretation of Regression Results
+
+```{r}
+#| label: regression-statistics
+#| echo: false
+#| include: false
+
+model_summary <- summary(m1)
+
+r_squared <- model_summary$r.squared
+adjusted_r_squared <- model_summary$adj.r.squared
+
+coefficients_table <- model_summary$coefficients
+
+significant_predictors <- rownames(coefficients_table)[
+  coefficients_table[, 4] < 0.05
+]
+
+significant_predictors <- setdiff(
+  significant_predictors,
+  "(Intercept)"
+)
+
+regression_interpretation <- if (
+  length(significant_predictors) == 0
+) {
+  "None of the three predictors were statistically significant at the 0.05 level in this simulated dataset."
+} else {
+  paste(
+    "The statistically significant predictors at the 0.05 level were:",
+    paste(significant_predictors, collapse = ", "),
+    "."
+  )
+}
+```
+
+The regression table provides:
+
+- **Coefficient Estimates:** Direction and magnitude of each predictor's relationship with satisfaction.
+- **95% Confidence Intervals:** Uncertainty surrounding the coefficient estimates.
+- **P-values:** Statistical significance of each predictor while controlling for the others.
+
+**Model Performance:**
+
+- R-squared: `r round(r_squared, 3)`
+- Adjusted R-squared: `r round(adjusted_r_squared, 3)`
+
+**Statistical Findings:**
+
+`r regression_interpretation`
+
+Because this dataset was randomly generated, these findings should not be interpreted as evidence of actual customer satisfaction drivers at Avenue Shabu.
+
+---
+
+## 4. Business Implications
+
+With actual Avenue Shabu customer survey data, multiple regression could help management:
+
+- Identify which restaurant experience factors are most strongly associated with customer satisfaction.
+- Prioritize operational improvements based on statistical evidence.
+- Develop targeted marketing messages highlighting customer-valued experiences.
+- Support business decisions with quantitative findings.
+
+**Key Takeaway:**
+
+The `{gtsummary}` package makes regression results easier to understand and communicate, helping bridge the gap between statistical analysis and business decision-making.
+
+---
+
+## 5. Appendix: GitHub Submission
+
+- **GitHub Repository:** https://github.com/jennyjeong53/M08-gtsummary
+- **GitHub Pages Publication:** https://jennyjeong53.github.io/M08-gtsummary
+
+::: aside
+This assignment demonstrates the power of reproducible research and literate programming for the Avenue Shabu marketing analytics project.
+:::
+
+### Final Reflection
+
+This assignment demonstrates how `{gtsummary}` supports reproducible statistical analysis and professional reporting.
+
+By combining Quarto and `{gtsummary}`, analytical findings can be communicated more clearly to academic audiences and business stakeholders.
